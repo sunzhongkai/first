@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body ng-controller="myController as xxx">
+    <p>{{name}}</p>
+    <input type="text" realy-last ng-model="name">
+
+</body>
+<script src="../../20170426/lib/angular.js"></script>
+<script>
+
+    //  1.  $viewValue: 视图上的值, 保存着更新视图上的字符串值
+    //  2.  $modelValue: 模型上的值, 这两个字很多情况下都是一致的, 但是$viewValue上的值有可能和$modelValue上的值不同, 因为视图上的值传递给模型需要一个过程
+    //  3. $parsers: 由很多函数组成的数组, 这里面的函数会以流水的形式被逐一调用, ngModel取到的DOM上的值会被传入到函数中作为参数
+    //  4. $formatters: 由很多函数组成的数组, 以流水的形式被逐一调用, 这是用来处理数据格式的(格式化数据), 显示到DOM上
+    //  5. $viewChangeListeners: 一个由函数组成的数组, 当视图上的值发生改变的时候, 数组中的函数也会以流水的形式被调用
+    //  6. $error: 存放错误信息
+    //  7. $pristine: 布尔值, 控件的值是不是初始状态, 如果是就为true, 否则为false
+    //  8. $dirty: 值正好和$pristine相反, 如果用户操作了控件, 值为true
+    //  9. $valid: 控件中的值是否有错误, 如果有错误就为false, 没有错误就为true
+    //  10.$invalid: 值和$valid相反
+    //  11. $render: 将模型中的值渲染到控件中
+
+
+    angular.module("myApp",[])
+        .controller("myController",function ($scope) {
+
+            //控制器的别名
+            //真名  as  别名
+
+            $scope.name = "杨超";
+            this.age= 12;
+        })
+        .directive("myDirective",function () {
+
+            return {
+                restriect:"A",
+                template:"<div>{{yyy.hobby}}{{name}},{{age}},{{gender}}</div>",
+                controller:"directiveCtr",
+                controllerAs:"yyy"
+            }
+        })
+        .controller("directiveCtr",function ($scope) {
+            $scope.name = "指令name";
+            $scope.age = "指令age";
+            $scope.gender = "指令gender";
+            this.hobby = "人";
+        })
+        .directive("newDirective",function () {
+            return {
+                transclude:true,
+                restriect:"A",
+                template:"<div>我是newDirective的模板<p>{{name}}</p></div>",
+                controller:["$scope","$log","$attrs","$element","$transclude",function ($scope,$log,$attrs,$element,$transclude) {
+                    $log.info($element);
+                    $log.info($attrs);
+
+                    $transclude(function (clone) {
+//                        console.log(clone);
+//                        console.log(clone.text());
+                        var a = angular.element("<a />");
+                        a.attr("href","http://www.baidu.com");
+                        a.text(clone.text());
+                        $element.append(a);
+                    });
+                }]
+            }
+        })
+        .directive("compileDirective",function () {
+        return {
+            restrict:"A",
+            controller:function () {
+                console.log("指令控制器");
+                
+            },
+//            link:function () {
+//                console.log("指令的link方法");
+//            },
+            compile:function (a,b,c) {
+                //angular指令中指定的生命周期
+                //在angular功能 启动前
+                //angular 是以html文been的格式存储在编译器中
+                //应用汇启动后，回编译和链接
+                //紧接着 作用域会协同 html进行绑定
+                //应用会对用户对HTML的操作做出反应
+                console.log("此时,$scope还没有注入到指令的控制器中");
+                console.log(a);
+                console.log(b);
+                console.log(c);
+
+
+                console.log("我是compile方法");
+                //compile返回的方法就是link方法的起始
+                //当compile存在的时候，link方法就不会走
+                //因为compile内部返回的就是link方法
+                //而link方法有一个特点，
+                //当指令被初始换的时候，会走一次
+                //既然compile 内部的返回已经走过， 那么link方法就不再走了
+
+                return function ($scope,element,attrs) {
+                    console.log("此时,$scope已经注入到指令的控制器中");
+                    console.log(element);
+                }
+            }
+        }
+    })
+        .directive("realyLast",function () {
+            return {
+                restrict:"A",
+                require:"?ngModel",
+                link:function ($scope,element,attrs,ngModelController) {
+                    console.log("我是link方法。。。");
+                    console.log(ngModelController);
+                }
+            }
+        })
+</script>
+</html>
